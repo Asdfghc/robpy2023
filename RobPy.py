@@ -86,17 +86,19 @@ def produto_vetorial(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
     :param v2: vetor (np.ndarray) coluna de 3 elementos
     :return: vetor (np.ndarray) coluna de 3 elementos com o resultado de v1 x v2
     """
-    pass
+    checa_vetor3(v1)
+    checa_vetor3(v2)
+    return np.asarray([[v1[1][0]*v2[2][0]-v1[2][0]*v2[1][0]], [v1[2][0]*v2[0][0]-v1[0][0]*v2[2][0]], [v1[0][0]*v2[1][0]-v1[1][0]*v2[0][0]]])
 
 
 # Parte 2
 
 
 def plota_vetor3(v: np.ndarray,
-                 ax: plot.Axes,
                  *args,
                  vo: np.ndarray = np.zeros([3, 1]),
-                 zdir='z', **kwargs) -> list:
+                color = 'b',
+                 **kwargs) -> list:
     """
     Utiliza o pacote matplotlib.plotpy para plotar um vetor em um diagrama 3D. É necessário utilizar eixos criados com o
     comando matplotlib.plotly.axis(projection='3d').
@@ -110,7 +112,9 @@ def plota_vetor3(v: np.ndarray,
     :param kwargs: parâmetros padrão do plot.
     :return: lista de elementos de linha do vetor plotado.
     """
-    pass
+    a = plot.plot([vo[0][0], v[0][0]+vo[0][0]], [vo[1][0], v[1][0]+vo[1][0]], [vo[2][0], v[2][0]+vo[2][0]], linewidth=4, color=color)
+    b = plot.plot(v[0][0]+vo[0][0], v[1][0]+vo[1][0], v[2][0]+vo[2][0], marker='o', markersize=10, color=color)
+    return [a, b]
 
 
 def matriz_rotacao_x(theta: float) -> np.ndarray:

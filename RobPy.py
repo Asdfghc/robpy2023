@@ -126,9 +126,9 @@ def matriz_rotacao_x(theta: float) -> np.ndarray:
     """
     s = np.sin(theta)
     c = np.cos(theta)
-    return np.asarray([[1], [0], [0]],
-                      [[0], [c], [s]],
-                      [[0], [-s], [c]])
+    return np.asarray([[1], [0], [0],
+                      [0], [c], [s],
+                      [0], [-s], [c]])
 
 
 def matriz_rotacao_y(theta: float) -> np.ndarray:
@@ -140,9 +140,9 @@ def matriz_rotacao_y(theta: float) -> np.ndarray:
     """
     s = np.sin(theta)
     c = np.cos(theta)
-    return np.asarray([[c], [0], [-s]],
-                      [[0], [1], [0]],
-                      [[s], [0], [c]])
+    return np.asarray([[c], [0], [-s],
+                      [0], [1], [0],
+                      [s], [0], [c]])
 
 
 def matriz_rotacao_z(theta: float) -> np.ndarray:
@@ -154,9 +154,9 @@ def matriz_rotacao_z(theta: float) -> np.ndarray:
     """
     s = np.sin(theta)
     c = np.cos(theta)
-    return np.asarray([[c], [s], [0]],
-                      [[-s], [c], [0]],
-                      [[0], [0], [1]])
+    return np.asarray([[c], [s], [0],
+                      [-s], [c], [0],
+                      [0], [0], [1]])
 
 
 # Parte 3
@@ -333,7 +333,12 @@ def __eixo_reta_12_np(po1: np.ndarray, vs1: np.ndarray, po2: np.ndarray, vs2: np
     :param vs2: Vetor orientação da reta 1
     :return: vetor unitário que aponta da reta 1 à reta 2
     """
-    pass
+    e = produto_vetorial(vs1, vs2)
+    e = e/norma_vetor(e)
+    d = po2 - po1
+    return e*np.sign(produto_escalar(d, e))
+
+
 
 
 def __eixo_reta_12_p(po1: np.ndarray, po2: np.ndarray, vs: np.ndarray) -> float:
@@ -345,7 +350,10 @@ def __eixo_reta_12_p(po1: np.ndarray, po2: np.ndarray, vs: np.ndarray) -> float:
     :param vs: Vetor direção de ambas as retas
     :return: vetor unitário que aponta da reta 1 à reta 2
     """
-    pass
+    d = po2 - po1
+    dp = proj_vetores(d, vs)
+    e = d - dp
+    return e/norma_vetor(e)
 
 
 def eixo_reta_12(po1: np.ndarray, vs1: np.ndarray, po2: np.ndarray, vs2: np.ndarray, angtol=1e-3) -> float:
@@ -358,7 +366,17 @@ def eixo_reta_12(po1: np.ndarray, vs1: np.ndarray, po2: np.ndarray, vs2: np.ndar
     :param angtol: Tolerância de ângulo entre as retas para decidir se são paralelas
     :return: vetor unitário que aponta da reta 1 à reta 2
     """
-    pass
+    checa_vetor3(po1)
+    checa_vetor3(po2)
+    checa_vetor3(vs1)
+    checa_vetor3(vs2)
+    if angtol < 0:
+        raise ValueError('A tolerância angular deve ser não negativa')
+    ang = np.abs(ang_vetores(vs1, vs2))
+    if (ang < angtol) or (np.abs(ang - np.pi/2) < angtol):
+        return __eixo_reta_12_p(po1, po2, vs1)
+    else:
+        return __eixo_reta_12_np(po1, vs1, po2, vs2)
 
 
 def ang_twist_dir_nc_rad(po1: np.ndarray, vs1: np.ndarray, po2: np.ndarray, vs2: np.ndarray, angtol=1e-3) -> float:
@@ -372,7 +390,12 @@ def ang_twist_dir_nc_rad(po1: np.ndarray, vs1: np.ndarray, po2: np.ndarray, vs2:
     :param angtol: Tolerância de ângulo entre as retas para decidir se são paralelas
     :return: Ângulo de torção do link com sinal direcional
     """
-    pass
+    pvs = produto_vetorial(vs1, vs2)
+    e12 = eixo_reta_12(po1, vs1, po2, vs2, angtol=angtol)
+
+    pe = produto_escalar(pvs, e12)
+    return ang_vetores(vs1, vs2) * np.sign(pe)
+
 
 
 def ang_twist_dir_ref_rad(vs1: np.ndarray, vs2: np.ndarray, vref: np.ndarray, projtol: float=1e-3) -> float:
@@ -385,4 +408,10 @@ def ang_twist_dir_ref_rad(vs1: np.ndarray, vs2: np.ndarray, vref: np.ndarray, pr
     :param projtol: Tolerância da projeção de vs1 e vs2 sobre vref para verificar se são perpendiculares
     :return: Ângulo de torção do link com sinal direcional
     """
-    pass
+    pvs = produto_vetorial(vs1, vs2)
+    pe = produto_escalar(pvs, vref)
+    
+    if (norma_vetor(vref - proj_vetores(vref, pvs)*np.sign(pe))) > projtol:
+        raise ValueError("O vetor de referência não possui a orientação apropriada")
+    
+    return ang_vetores(vs1, vs2) * np.sign(pe)
